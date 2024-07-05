@@ -1,0 +1,112 @@
+import pygame
+import time
+
+pygame.init()
+
+# Screen settings
+screen = pygame.display.set_mode((1050, 750))
+clock = pygame.time.Clock()
+running = True
+dt = 0
+cell_width = 30
+cell_height = 14
+
+# Player and ball positions
+player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
+vx = -1
+vy = 15
+bola_pos = pygame.Vector2(550, 600)
+ticks = 0
+timer = 0
+fps = 60
+alreadyout = 'no'
+eligable = 'no'
+entered = 'no'
+
+# Load ball image
+try:
+    bola = pygame.image.load("bolabranca.png")
+    bola = pygame.transform.scale(bola, (30, 30))
+except FileNotFoundError:
+    bola = pygame.Surface((30, 30))
+    bola.fill((255, 255, 255))  # Fill the surface with white color as a placeholder
+
+screen.blit(bola, (bola_pos.x, bola_pos.y))
+
+# Create blocks
+rect1 = pygame.Rect(100, 100, 40, 35)
+rects = []
+for i in range(30):
+    for j in range(30):
+        rects.append(pygame.Rect(j * (cell_width + 5), i * (cell_height + 5), cell_width, cell_height))
+
+# Font settings for timer
+font = pygame.font.SysFont(None, 36)
+
+while running:
+    ticks += 1
+    if ticks % fps == 0:
+        timer += 1
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    screen.fill("black")
+    base = pygame.Rect(player_pos.x, 700, 65, 10)
+    pygame.draw.rect(screen, "green", base)
+
+    for rect in rects:
+        pygame.draw.rect(screen, "green", rect)
+
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_w]:
+        player_pos.y -= 400 * dt
+    if keys[pygame.K_s]:
+        player_pos.y += 400 * dt
+    if keys[pygame.K_a]:
+        player_pos.x -= 400 * dt
+    if keys[pygame.K_d]:
+        player_pos.x += 400 * dt
+
+    bola_rect = pygame.Rect(bola_pos.x, bola_pos.y, 30, 30)
+    screen.blit(bola, bola_rect.topleft)
+
+    bola_pos.x += vx
+    bola_pos.y += vy
+
+    if bola_pos.y > 700 - 14:
+        if player_pos.x - 20 < bola_pos.x < player_pos.x + 60:
+            vy *= -1
+
+    for element in rects:
+        if bola_rect.colliderect(element):
+            if bola_pos.y <= element.y + 14:
+                vy *= -1
+            elif bola_pos.x + 20 >= element.x:
+                vx *= -1
+            elif bola_pos.x <= element.x + 30:
+                vx *= -1
+
+            vy = 10
+            rects.remove(element)
+            break  # Exit the loop to prevent modifying the list while iterating
+
+    if bola_pos.x <= 0 or bola_pos.x >= 1050:
+        vx *= -1
+
+    if bola_pos.y <= 0:
+        vy *= -1
+
+    if bola_pos.y >= 750:
+        pygame.quit()
+        exit()
+
+    # Render timer in the bottom left corner
+    timer_text = font.render(f"Time: {timer}", True, (255, 255, 255))
+    screen.blit(timer_text, (10, screen.get_height() - 40))
+
+    pygame.display.flip()
+    dt = clock.tick(fps) / 1000
+
+pygame.quit()

@@ -1,0 +1,11 @@
+from random import randint
+x = randint(0, 10)
+y = int(input("Escolhe"))
+while (x != y):
+    if (x > y):
+        print ("sobe")
+    if (x < y):
+        print ("desce")
+    if (x == y):
+        print ("Acertaste")
+    y = int(input("tenta outra vez"))
